@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Center,
   Button,
@@ -32,19 +32,20 @@ import {
   Heading,
   LinkText,
   InputSlot,
-} from '@gluestack-ui/themed';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Keyboard } from 'react-native';
-import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
+} from "@gluestack-ui/themed";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Keyboard } from "react-native";
+import { AlertTriangle, EyeIcon, EyeOffIcon } from "lucide-react-native";
+import { supabase } from "../../utils/supabase";
 
-import { GoogleIcon, FacebookIcon } from './assets/Icons/Social';
+import { GoogleIcon, FacebookIcon } from "./assets/Icons/Social";
 
-import GuestLayout from '../../layouts/GuestLayout';
-import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import GuestLayout from "../../layouts/GuestLayout";
+import StyledExpoRouterLink from "../../components/StyledExpoRouterLink";
 
-import { styled } from '@gluestack-style/react';
+import { styled } from "@gluestack-style/react";
 
 const StyledImage = styled(Image, {
   props: {
@@ -56,16 +57,16 @@ const StyledImage = styled(Image, {
 });
 
 const signInSchema = z.object({
-  email: z.string().min(1, 'Email is required').email(),
+  email: z.string().min(1, "Email is required").email(),
   password: z
     .string()
-    .min(6, 'Must be at least 8 characters in length')
-    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-    .regex(new RegExp('.*\\d.*'), 'One number')
+    .min(6, "Must be at least 8 characters in length")
+    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
+    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
+    .regex(new RegExp(".*\\d.*"), "One number")
     .regex(
-      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-      'One special character'
+      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
+      "One special character"
     ),
   rememberme: z.boolean().optional(),
 });
@@ -85,19 +86,36 @@ const SignInForm = () => {
 
   const toast = useToast();
 
-  const onSubmit = (_data: SignInSchemaType) => {
-    toast.show({
-      placement: 'bottom right',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={id} variant="accent" action="success">
-            <ToastTitle>Signed in successfully</ToastTitle>
-          </Toast>
-        );
-      },
+  const onSubmit = async (_data: SignInSchemaType) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: _data.email,
+      password: _data.password,
     });
-    reset();
-    // Implement your own onSubmit and navigation logic here.
+
+    if (error) {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Invalid login.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    } else {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Signed in successfully</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+      reset();
+    }
   };
 
   const handleKeyPress = () => {
@@ -184,7 +202,7 @@ const SignInForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                 />
                 <InputSlot onPress={handleState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -243,7 +261,7 @@ function SideContainerWeb() {
       flex={1}
       bg="$primary500"
       sx={{
-        _dark: { bg: '$primary500' },
+        _dark: { bg: "$primary500" },
       }}
     >
       <StyledImage
@@ -251,7 +269,7 @@ function SideContainerWeb() {
         h="$10"
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+        source={require("./assets/images/gluestackUiProLogo_web_light.svg")}
       />
     </Center>
   );
@@ -265,19 +283,19 @@ function MobileHeader() {
           <Icon
             as={ArrowLeftIcon}
             color="$textLight50"
-            sx={{ _dark: { color: '$textDark50' } }}
+            sx={{ _dark: { color: "$textDark50" } }}
           />
         </StyledExpoRouterLink>
         <Text
           color="$textLight50"
-          sx={{ _dark: { color: '$textDark50' } }}
+          sx={{ _dark: { color: "$textDark50" } }}
           fontSize="$lg"
         >
           Sign In
         </Text>
       </HStack>
       <VStack space="xs" ml="$1" my="$4">
-        <Heading color="$textLight50" sx={{ _dark: { color: '$textDark50' } }}>
+        <Heading color="$textLight50" sx={{ _dark: { color: "$textDark50" } }}>
           Welcome back
         </Heading>
         <Text
@@ -285,7 +303,7 @@ function MobileHeader() {
           fontWeight="normal"
           color="$primary300"
           sx={{
-            _dark: { color: '$textDark400' },
+            _dark: { color: "$textDark400" },
           }}
         >
           Sign in to continue
@@ -298,19 +316,19 @@ function MobileHeader() {
 const Main = () => {
   return (
     <>
-      <Box sx={{ '@md': { display: 'none' } }}>
+      <Box sx={{ "@md": { display: "none" } }}>
         <MobileHeader />
       </Box>
       <Box
         px="$4"
         sx={{
-          '@md': {
-            px: '$8',
-            borderTopLeftRadius: '$none',
-            borderTopRightRadius: '$none',
-            borderBottomRightRadius: '$none',
+          "@md": {
+            px: "$8",
+            borderTopLeftRadius: "$none",
+            borderTopRightRadius: "$none",
+            borderBottomRightRadius: "$none",
           },
-          '_dark': { bg: '$backgroundDark800' },
+          _dark: { bg: "$backgroundDark800" },
         }}
         py="$8"
         flex={1}
@@ -324,7 +342,7 @@ const Main = () => {
           display="none"
           mb="$8"
           sx={{
-            '@md': { display: 'flex', fontSize: '$2xl' },
+            "@md": { display: "flex", fontSize: "$2xl" },
           }}
         >
           Sign in to continue
@@ -334,26 +352,26 @@ const Main = () => {
           <Divider
             w="$2/6"
             bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+            sx={{ _dark: { bg: "$backgroundDark700" } }}
           />
           <Text
             fontWeight="medium"
             color="$textLight400"
-            sx={{ _dark: { color: '$textDark300' } }}
+            sx={{ _dark: { color: "$textDark300" } }}
           >
             or
           </Text>
           <Divider
             w="$2/6"
             bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+            sx={{ _dark: { bg: "$backgroundDark700" } }}
           />
         </HStack>
         <HStack
           mt="$6"
           sx={{
-            '@md': {
-              mt: '$4',
+            "@md": {
+              mt: "$4",
             },
           }}
           mb="$9"
@@ -381,7 +399,7 @@ const Main = () => {
           <Text
             color="$textLight500"
             fontSize="$sm"
-            sx={{ _dark: { color: '$textDark400' } }}
+            sx={{ _dark: { color: "$textDark400" } }}
           >
             Don't have an account?
           </Text>
@@ -397,7 +415,7 @@ const Main = () => {
 const SignIn = () => {
   return (
     <GuestLayout>
-      <Box display="none" sx={{ '@md': { display: 'flex' } }} flex={1}>
+      <Box display="none" sx={{ "@md": { display: "flex" } }} flex={1}>
         <SideContainerWeb />
       </Box>
       <Main />

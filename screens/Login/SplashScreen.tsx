@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   VStack,
@@ -6,15 +6,15 @@ import {
   Image,
   Center,
   ButtonText,
-} from '@gluestack-ui/themed';
+} from "@gluestack-ui/themed";
 
-import GuestLayout from '../../layouts/GuestLayout';
-import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import GuestLayout from "../../layouts/GuestLayout";
+import { router } from "expo-router";
 
-import { styled } from '@gluestack-style/react';
+import { styled } from "@gluestack-style/react";
 
 const StyledImage = styled(Image, {
-  '@sm': {
+  "@sm": {
     props: {
       style: {
         height: 40,
@@ -22,7 +22,7 @@ const StyledImage = styled(Image, {
       },
     },
   },
-  '@md': {
+  "@md": {
     props: {
       style: {
         height: 141,
@@ -39,15 +39,15 @@ function ActionButtons() {
       space="xs"
       mt="$10"
       sx={{
-        '@md': {
-          mt: '$12',
+        "@md": {
+          mt: "$12",
         },
       }}
     >
       <Button
         sx={{
-          ':hover': {
-            bg: '$backgroundLight100',
+          ":hover": {
+            bg: "$backgroundLight100",
           },
         }}
         size="md"
@@ -56,24 +56,23 @@ function ActionButtons() {
         isDisabled={false}
         isFocusVisible={false}
         backgroundColor="$backgroundLight0"
+        onPress={() => router.push("/login")}
       >
-        <StyledExpoRouterLink href="/login">
-          <ButtonText
-            fontWeight="$bold"
-            textDecorationLine="none"
-            color="$primary500"
-          >
-            LOGIN
-          </ButtonText>
-        </StyledExpoRouterLink>
+        <ButtonText
+          fontWeight="$bold"
+          textDecorationLine="none"
+          color="$primary500"
+        >
+          LOGIN
+        </ButtonText>
       </Button>
 
       <Button
         sx={{
-          ':hover': {
-            bg: '$backgroundLight0',
+          ":hover": {
+            bg: "$backgroundLight0",
             _text: {
-              color: '$primary500',
+              color: "$primary500",
             },
           },
         }}
@@ -84,12 +83,11 @@ function ActionButtons() {
         action="primary"
         isDisabled={false}
         isFocusVisible={false}
+        onPress={() => router.push("/signup")}
       >
-        <StyledExpoRouterLink href="/signup">
-          <ButtonText textDecorationLine="none" color="$textLight50">
-            SIGN UP
-          </ButtonText>
-        </StyledExpoRouterLink>
+        <ButtonText textDecorationLine="none" color="$textLight50">
+          SIGN UP
+        </ButtonText>
       </Button>
     </VStack>
   );
@@ -101,10 +99,10 @@ function HeaderLogo() {
       <StyledImage
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+        source={require("./assets/images/gluestackUiProLogo_web_light.svg")}
         sx={{
-          '@md': {
-            display: 'flex',
+          "@md": {
+            display: "flex",
           },
         }}
         display="none"
@@ -112,13 +110,13 @@ function HeaderLogo() {
 
       <StyledImage
         sx={{
-          '@md': {
-            display: 'none',
+          "@md": {
+            display: "none",
           },
         }}
         alt="gluestack-ui Pro"
         display="flex"
-        source={require('./assets/images/gluestackUiProLogo_mobile.png')}
+        source={require("./assets/images/gluestackUiProLogo_mobile.png")}
       />
     </Box>
   );
@@ -136,10 +134,10 @@ export default function SplashScreen() {
           w="$full"
           minHeight="$authcard"
           sx={{
-            '@md': {
+            "@md": {
               // h: '$authcard',
-              px: '$8',
-              bg: '$primary500',
+              px: "$8",
+              bg: "$primary500",
             },
           }}
           px="$4"

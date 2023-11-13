@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Button,
   Checkbox,
@@ -32,22 +32,23 @@ import {
   ArrowLeftIcon,
   InputField,
   InputSlot,
-} from '@gluestack-ui/themed';
+} from "@gluestack-ui/themed";
 
-import { Controller, useForm } from 'react-hook-form';
-import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard } from 'react-native';
+import { Controller, useForm } from "react-hook-form";
+import { AlertTriangle, EyeIcon, EyeOffIcon } from "lucide-react-native";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Keyboard } from "react-native";
+import { supabase } from "../../utils/supabase";
 
-import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
+import { FacebookIcon, GoogleIcon } from "./assets/Icons/Social";
 
-import GuestLayout from '../../layouts/GuestLayout';
+import GuestLayout from "../../layouts/GuestLayout";
 
-import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { router } from 'expo-router';
+import StyledExpoRouterLink from "../../components/StyledExpoRouterLink";
+import { router } from "expo-router";
 
-import { styled } from '@gluestack-style/react';
+import { styled } from "@gluestack-style/react";
 
 const StyledImage = styled(Image, {
   props: {
@@ -59,26 +60,26 @@ const StyledImage = styled(Image, {
 });
 
 const signUpSchema = z.object({
-  email: z.string().min(1, 'Email is required').email(),
+  email: z.string().min(1, "Email is required").email(),
   password: z
     .string()
-    .min(6, 'Must be at least 8 characters in length')
-    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-    .regex(new RegExp('.*\\d.*'), 'One number')
+    .min(6, "Must be at least 8 characters in length")
+    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
+    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
+    .regex(new RegExp(".*\\d.*"), "One number")
     .regex(
-      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-      'One special character'
+      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
+      "One special character"
     ),
   confirmpassword: z
     .string()
-    .min(6, 'Must be at least 8 characters in length')
-    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-    .regex(new RegExp('.*\\d.*'), 'One number')
+    .min(6, "Must be at least 8 characters in length")
+    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
+    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
+    .regex(new RegExp(".*\\d.*"), "One number")
     .regex(
-      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-      'One special character'
+      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
+      "One special character"
     ),
   rememberme: z.boolean().optional(),
 });
@@ -92,7 +93,7 @@ function SideContainerWeb() {
       flex={1}
       sx={{
         _dark: {
-          bg: '$primary500',
+          bg: "$primary500",
         },
       }}
     >
@@ -101,7 +102,7 @@ function SideContainerWeb() {
         w="$80"
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+        source={require("./assets/images/gluestackUiProLogo_web_light.svg")}
       />
     </Center>
   );
@@ -115,20 +116,20 @@ function MobileHeader() {
           <Icon
             as={ArrowLeftIcon}
             color="$textLight50"
-            sx={{ _dark: { color: '$textDark50' } }}
+            sx={{ _dark: { color: "$textDark50" } }}
           />
         </StyledExpoRouterLink>
 
         <Text
           color="$textLight50"
-          sx={{ _dark: { color: '$textDark50' } }}
+          sx={{ _dark: { color: "$textDark50" } }}
           fontSize="$lg"
         >
           Sign Up
         </Text>
       </HStack>
       <VStack space="xs" ml="$1" my="$4">
-        <Heading color="$textLight50" sx={{ _dark: { color: '$textDark50' } }}>
+        <Heading color="$textLight50" sx={{ _dark: { color: "$textDark50" } }}>
           Welcome
         </Heading>
         <Text
@@ -136,7 +137,7 @@ function MobileHeader() {
           fontSize="$md"
           sx={{
             _dark: {
-              color: '$textDark400',
+              color: "$textDark400",
             },
           }}
         >
@@ -160,11 +161,19 @@ const SignUpForm = () => {
   const [pwMatched, setPwMatched] = useState(false);
   const toast = useToast();
 
-  const onSubmit = (_data: SignUpSchemaType) => {
+  const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.signUp({
+        email: _data.email,
+        password: _data.password,
+      });
+
       setPwMatched(true);
       toast.show({
-        placement: 'bottom right',
+        placement: "bottom right",
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="success">
@@ -176,7 +185,7 @@ const SignUpForm = () => {
       reset();
     } else {
       toast.show({
-        placement: 'bottom right',
+        placement: "bottom right",
         render: ({ id }) => {
           return (
             <Toast nativeID={id} action="error">
@@ -186,9 +195,6 @@ const SignUpForm = () => {
         },
       });
     }
-    // Implement your own onSubmit and navigation logic here.
-    // Navigate to appropriate location
-    router.replace('/login');
   };
 
   const handleKeyPress = () => {
@@ -279,7 +285,7 @@ const SignUpForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                 />
                 <InputSlot onPress={handleState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -323,7 +329,7 @@ const SignUpForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                 />
                 <InputSlot onPress={handleConfirmPwState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -358,34 +364,34 @@ const SignUpForm = () => {
             <CheckboxLabel
               sx={{
                 _text: {
-                  fontSize: '$sm',
+                  fontSize: "$sm",
                 },
               }}
             >
-              I accept the{' '}
+              I accept the{" "}
               <Link>
                 <LinkText
                   sx={{
                     _ios: {
-                      marginTop: '$0.5',
+                      marginTop: "$0.5",
                     },
                     _android: {
-                      marginTop: '$0.5',
+                      marginTop: "$0.5",
                     },
                   }}
                 >
                   Terms of Use
                 </LinkText>
-              </Link>{' '}
-              &{' '}
+              </Link>{" "}
+              &{" "}
               <Link>
                 <LinkText
                   sx={{
                     _ios: {
-                      marginTop: '$0.5',
+                      marginTop: "$0.5",
                     },
                     _android: {
-                      marginTop: '$0.5',
+                      marginTop: "$0.5",
                     },
                   }}
                 >
@@ -413,8 +419,8 @@ function SignUpFormComponent() {
     <>
       <Box
         sx={{
-          '@md': {
-            display: 'none',
+          "@md": {
+            display: "none",
           },
         }}
       >
@@ -425,14 +431,14 @@ function SignUpFormComponent() {
         flex={1}
         bg="$backgroundLight0"
         sx={{
-          '@md': {
-            px: '$8',
-            borderTopLeftRadius: '$none',
-            borderTopRightRadius: '$none',
-            borderBottomRightRadius: '$none',
+          "@md": {
+            px: "$8",
+            borderTopLeftRadius: "$none",
+            borderTopRightRadius: "$none",
+            borderBottomRightRadius: "$none",
           },
-          '_dark': {
-            bg: '$backgroundDark800',
+          _dark: {
+            bg: "$backgroundDark800",
           },
         }}
         px="$4"
@@ -446,7 +452,7 @@ function SignUpFormComponent() {
           display="none"
           mb="$8"
           sx={{
-            '@md': { display: 'flex', fontSize: '$2xl' },
+            "@md": { display: "flex", fontSize: "$2xl" },
           }}
         >
           Sign up to continue
@@ -458,25 +464,25 @@ function SignUpFormComponent() {
           <Divider
             w="$2/6"
             bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+            sx={{ _dark: { bg: "$backgroundDark700" } }}
           />
           <Text
             fontWeight="$medium"
             color="$textLight400"
-            sx={{ _dark: { color: '$textDark300' } }}
+            sx={{ _dark: { color: "$textDark300" } }}
           >
             or
           </Text>
           <Divider
             w="$2/6"
             bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+            sx={{ _dark: { bg: "$backgroundDark700" } }}
           />
         </HStack>
         <HStack
           sx={{
-            '@md': {
-              mt: '$4',
+            "@md": {
+              mt: "$4",
             },
           }}
           mt="$6"
@@ -507,7 +513,7 @@ function SignUpFormComponent() {
             color="$textLight500"
             sx={{
               _dark: {
-                color: '$textDark400',
+                color: "$textDark400",
               },
             }}
             fontSize="$sm"
@@ -529,8 +535,8 @@ export default function SignUp() {
     <GuestLayout>
       <Box
         sx={{
-          '@md': {
-            display: 'flex',
+          "@md": {
+            display: "flex",
           },
         }}
         flex={1}
