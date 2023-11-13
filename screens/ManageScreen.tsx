@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { StatusBar, Platform, ScrollView } from "react-native";
 import { Box, HStack } from "@gluestack-ui/themed";
 import {
@@ -8,6 +8,14 @@ import {
   User,
   SlidersHorizontal,
 } from "lucide-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "../utils/supabase";
+import { SessionContext } from "../utils/SessionContext";
+import Header from "../components/Header";
+// import MobileBottomTabs from '../components/MobileBottomTabs';
+// import MobileProfilePage from '../components/MobileProfilePage';
+import WebSidebar from "../components/WebSidebar";
+import MainContent from "../components/main-content/MainContent";
 
 const bottomTabs = [
   {
@@ -41,7 +49,24 @@ const ManageScreen = () => {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = React.useState("Home");
+  const session = useContext(SessionContext);
+  const [activeTab, setActiveTab] = useState("Home");
+  const [myEvents, setMyEvents] = useState<Array<Object> | null>([]);
+
+  useEffect(() => {
+    if (session) {
+      const getMyEvents = async () => {
+        const { data, error } = await supabase
+          .from(process.env.EXPO_PUBLIC_EVENTS_TABLE_NAME)
+          .select()
+          .eq("owner", session?.user.id);
+        console.log(data);
+        setMyEvents(data);
+      };
+
+      getMyEvents();
+    }
+  }, [session]);
 
   return (
     <>
@@ -54,13 +79,16 @@ const ManageScreen = () => {
         <StatusBar />
 
         <Box flex={1}>
+          {/* <MobileProfilePage isActive={activeTab === 'Profile'} /> */}
+
           <Box
             w="100%"
             sx={{
               display: activeTab !== "Profile" ? "flex" : "none",
             }}
           >
-            Manage
+            {/* header */}
+            <Header />
           </Box>
 
           <ScrollView>
@@ -71,14 +99,26 @@ const ManageScreen = () => {
                 "@md": { display: "none" },
               }}
             >
-              Main content
+              <MainContent
+                setActiveTab={setActiveTab}
+                activeTab={activeTab}
+                events={myEvents}
+              />
             </Box>
           </ScrollView>
 
           <HStack w="100%" display="none" sx={{ "@md": { display: "flex" } }}>
-            Sidebar
-            <ScrollView style={{ flex: 1 }}>Main content</ScrollView>
+            <WebSidebar />
+            <ScrollView style={{ flex: 1 }}>
+              <MainContent
+                setActiveTab={setActiveTab}
+                activeTab={activeTab}
+                events={myEvents}
+              />
+            </ScrollView>
           </HStack>
+
+          {/* <MobileModeChangeButton /> */}
         </Box>
 
         {/* mobile bottom tabs */}
@@ -94,7 +134,13 @@ const ManageScreen = () => {
           }}
           borderTopWidth="$1"
           borderColor="$borderLight50"
-        ></Box>
+        >
+          {/* <MobileBottomTabs
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            bottomTabs={bottomTabs}
+          /> */}
+        </Box>
       </Box>
       {/* )} */}
     </>

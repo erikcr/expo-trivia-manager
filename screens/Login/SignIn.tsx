@@ -39,6 +39,7 @@ import { z } from "zod";
 import { Keyboard } from "react-native";
 import { AlertTriangle, EyeIcon, EyeOffIcon } from "lucide-react-native";
 import { supabase } from "../../utils/supabase";
+import { router } from "expo-router";
 
 import { GoogleIcon, FacebookIcon } from "./assets/Icons/Social";
 
@@ -115,6 +116,8 @@ const SignInForm = () => {
         },
       });
       reset();
+
+      router.replace("/manage");
     }
   };
 
