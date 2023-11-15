@@ -1,6 +1,8 @@
 import React from "react";
 import { Box, HStack, ScrollView, Text, Heading } from "@gluestack-ui/themed";
 import MainContentHeader from "./MainContentHeader";
+import { Pressable } from "react-native";
+import { router } from "expo-router";
 
 const MainContent = ({
   modalVisible,
@@ -38,11 +40,16 @@ const MainContent = ({
             >
               {events.map((item, index) => {
                 return (
-                  <Box key={index} borderWidth={1} borderRadius="$md" p="$12" m="$2">
-                    <Heading>{item.name}</Heading>
-                    <Text>{item.location}</Text>
-                    <Text>{item.venue}</Text>
-                  </Box>
+                  <Pressable
+                    key={index}
+                    onPress={() => router.push(`/event?id=${item.id}`)}
+                  >
+                    <Box borderWidth={1} borderRadius="$md" p="$12" m="$2">
+                      <Heading>{item.name}</Heading>
+                      <Text>{item.location}</Text>
+                      <Text>{item.venue}</Text>
+                    </Box>
+                  </Pressable>
                 );
               })}
             </HStack>
