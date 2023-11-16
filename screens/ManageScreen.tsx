@@ -72,7 +72,6 @@ const ManageScreen = () => {
     <>
       <Box
         sx={{
-          _light: { bg: "white" },
           _dark: { bg: "$backgroundDark950" },
         }}
       >

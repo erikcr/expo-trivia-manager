@@ -34,7 +34,6 @@ const UserProfile = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      console.log(session);
     });
   }, []);
 

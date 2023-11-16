@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from "react";
-import { ScrollView, Pressable } from "react-native";
+import { ScrollView, Pressable, Keyboard } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Box,
@@ -13,18 +13,249 @@ import {
   useToast,
   Toast,
   ToastTitle,
-  Icon,
   Input,
   InputField,
   InputIcon,
   InputSlot,
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlHelper,
 } from "@gluestack-ui/themed";
-import { ChevronRight, Hash, Plus } from "lucide-react-native";
+import { AlertTriangle, ChevronRight, Hash, Plus } from "lucide-react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { supabase } from "../../../../../utils/supabase";
 import { SessionContext } from "../../../../../utils/SessionContext";
 
 import UserProfile from "../../../../../components/header/UserProfile";
+
+const questionSchema = z.object({
+  question: z.string().min(1, "Question in required"),
+  answer: z.string().min(1, "Answer is required"),
+  points: z.number(),
+});
+
+type QuestionSchemaType = z.infer<typeof questionSchema>;
+
+const QuestionForm = ({
+  questionId,
+  crudAction,
+  roundId,
+  owner,
+}: {
+  questionId: string;
+  crudAction: "UPDATE" | "INSERT";
+  roundId: string;
+  owner: string;
+}) => {
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    reset,
+  } = useForm<QuestionSchemaType>({
+    resolver: zodResolver(questionSchema),
+  });
+  const [isQuestionFocused, setIsQuestionFocused] = useState(false);
+
+  const toast = useToast();
+
+  const addQuestion = async (_data: QuestionSchemaType) => {
+    const { data, error } = await supabase
+      .from(process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME)
+      .insert([{ question: _data.question, answer: _data.answer }])
+      .select();
+
+    if (error) {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Question was not added.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    } else {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Question added successfully.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+      reset();
+    }
+  };
+
+  const saveQuestion = async (_data: QuestionSchemaType) => {
+    const { data, error } = await supabase
+      .from(process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME)
+      .update([{ question: _data.question, answer: _data.answer }])
+      .eq("id", questionId)
+      .select();
+
+    console.log(data);
+    console.log(error);
+
+    if (error) {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Question was not saved.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    } else {
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Question saved successfully.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+      reset();
+    }
+  };
+
+  const onSubmit = async (_data: QuestionSchemaType) => {
+    console.log(_data);
+    if (crudAction === "INSERT") {
+      addQuestion(_data);
+    } else if (crudAction === "UPDATE") {
+      saveQuestion(_data);
+    }
+  };
+
+  const handleKeyPress = () => {
+    Keyboard.dismiss();
+    handleSubmit(onSubmit)();
+  };
+
+  return (
+    <>
+      <VStack
+        alignContent="center"
+        justifyContent="space-between"
+        px="$2"
+        pb="$4"
+      >
+        <FormControl
+          isInvalid={
+            (!!errors.question || isQuestionFocused) && !!errors.question
+          }
+          isRequired={true}
+        >
+          <Controller
+            name="question"
+            defaultValue=""
+            control={control}
+            rules={{
+              validate: async (value) => {
+                try {
+                  await questionSchema.parseAsync({
+                    question: value,
+                  });
+                  return true;
+                } catch (error: any) {
+                  return error.message;
+                }
+              },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input>
+                <InputField
+                  fontSize="$sm"
+                  placeholder="Question"
+                  type="text"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  onSubmitEditing={handleKeyPress}
+                  enterKeyHint="done"
+                />
+              </Input>
+            )}
+          />
+          <FormControlError>
+            <FormControlErrorIcon size="md" as={AlertTriangle} />
+            <FormControlErrorText>
+              {errors?.question?.message}
+            </FormControlErrorText>
+          </FormControlError>
+        </FormControl>
+
+        <FormControl my="$6" isInvalid={!!errors.answer} isRequired={true}>
+          <Controller
+            name="answer"
+            defaultValue=""
+            control={control}
+            rules={{
+              validate: async (value) => {
+                try {
+                  await questionSchema.parseAsync({
+                    answer: value,
+                  });
+                  return true;
+                } catch (error: any) {
+                  return error.message;
+                }
+              },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input>
+                <InputField
+                  fontSize="$sm"
+                  placeholder="Answer"
+                  type="text"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  onSubmitEditing={handleKeyPress}
+                  enterKeyHint="done"
+                />
+              </Input>
+            )}
+          />
+          <FormControlError>
+            <FormControlErrorIcon size="sm" as={AlertTriangle} />
+            <FormControlErrorText>
+              {errors?.answer?.message}
+            </FormControlErrorText>
+          </FormControlError>
+
+          <FormControlHelper></FormControlHelper>
+        </FormControl>
+      </VStack>
+
+      <Button
+        variant="solid"
+        size="lg"
+        mt="$5"
+        mx="$2"
+        onPress={() => console.log(handleSubmit(onSubmit))}
+      >
+        <ButtonText fontSize="$sm">
+          {crudAction === "UPDATE" ? "Save" : "Add"}
+        </ButtonText>
+      </Button>
+    </>
+  );
+};
 
 export default function ManageRound() {
   const { eventId, roundId } = useLocalSearchParams();
@@ -33,6 +264,7 @@ export default function ManageRound() {
   const [round, setRound] = useState({});
   const [roundQuestions, setRoundQuestions] = useState([]);
   const [activeQuestion, setActiveQuestion] = useState(null);
+  const [isUpdate, setIsUpdate] = useState(true);
 
   const toast = useToast();
 
@@ -43,8 +275,6 @@ export default function ManageRound() {
         .select()
         .eq("round_id", roundId);
 
-      console.log("questions");
-      console.log(data);
       if (data) {
         setRoundQuestions(data);
       }
@@ -205,66 +435,123 @@ export default function ManageRound() {
                 sx={{
                   "@md": {
                     maxHeight: "calc(100vh - 144px)",
+                    pr: "$16",
                     pl: "$8",
                   },
                 }}
                 flex={1}
               >
-                <Box pt="$6" pb="$2.5" px="$4" sx={{ "@md": { px: 0 } }}>
-                  <HStack
-                    px="$2"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <Heading size="xl">Questions</Heading>
-                    {/* Hidden for mobile screens */}
-                    <Button
-                      display="none"
-                      sx={{
-                        "@md": {
-                          display: "flex",
-                        },
-                      }}
-                      ml="auto"
-                      variant="outline"
-                      action="secondary"
-                      size="sm"
+                {activeQuestion ? (
+                  <Box pt="$6" pb="$2.5" pl="$4" sx={{ "@md": { px: 0 } }}>
+                    <HStack
+                      px="$2"
+                      pb="$4"
+                      alignItems="center"
+                      justifyContent="center"
                     >
-                      <ButtonText>Add</ButtonText>
-                    </Button>
-                  </HStack>
-                </Box>
+                      <Heading flex={1} size="xl">
+                        Edit
+                      </Heading>
 
-                <VStack
-                  space="md"
-                  width="100%"
-                  px="$4"
-                  sx={{ "@md": { px: "$0" } }}
-                >
-                  {roundQuestions.map((item, index) => (
-                    <Pressable
-                      key={index}
-                      onPress={() => {
-                        setActiveQuestion(item);
-                      }}
-                    >
-                      <VStack
-                        alignContent="center"
-                        justifyContent="space-between"
-                        px="$2"
-                      >
-                        <Text
-                          pb="$2"
+                      <HStack flex={1}>
+                        <Button
+                          display="none"
+                          sx={{
+                            "@md": {
+                              display: "flex",
+                            },
+                          }}
+                          ml="auto"
+                          variant="outline"
+                          action="secondary"
                           size="sm"
-                          color="$textLight900"
-                          sx={{ _dark: { color: "$textDark100" } }}
+                          onPress={() => setActiveQuestion(null)}
                         >
-                          {index + 1}. {item.question}
-                        </Text>
-                      </VStack>
-                    </Pressable>
-                  ))}
-                </VStack>
+                          <ButtonText>Cancel</ButtonText>
+                        </Button>
+
+                        <Button
+                          display="none"
+                          sx={{
+                            "@md": {
+                              display: "flex",
+                            },
+                          }}
+                          ml="auto"
+                          variant="outline"
+                          action="secondary"
+                          size="sm"
+                        >
+                          <ButtonText>Submit</ButtonText>
+                        </Button>
+                      </HStack>
+                    </HStack>
+
+                    <QuestionForm
+                      questionId={activeQuestion.id}
+                      crudAction="UPDATE"
+                      roundId={roundId}
+                      owner={session?.user?.id}
+                    />
+                  </Box>
+                ) : (
+                  <Box pt="$6" pb="$2.5" px="$4" sx={{ "@md": { px: 0 } }}>
+                    <HStack
+                      px="$2"
+                      pb="$4"
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Heading size="xl">Questions</Heading>
+                      {/* Hidden for mobile screens */}
+                      <Button
+                        display="none"
+                        sx={{
+                          "@md": {
+                            display: "flex",
+                          },
+                        }}
+                        ml="auto"
+                        variant="outline"
+                        action="secondary"
+                        size="sm"
+                      >
+                        <ButtonText>Add</ButtonText>
+                      </Button>
+                    </HStack>
+
+                    <VStack
+                      space="md"
+                      width="100%"
+                      px="$4"
+                      sx={{ "@md": { px: "$0" } }}
+                    >
+                      {roundQuestions.map((item, index) => (
+                        <Pressable
+                          key={index}
+                          onPress={() => {
+                            setActiveQuestion(item);
+                          }}
+                        >
+                          <VStack
+                            alignContent="center"
+                            justifyContent="space-between"
+                            px="$2"
+                          >
+                            <Text
+                              pb="$2"
+                              size="sm"
+                              color="$textLight900"
+                              sx={{ _dark: { color: "$textDark100" } }}
+                            >
+                              {index + 1}. {item.question}
+                            </Text>
+                          </VStack>
+                        </Pressable>
+                      ))}
+                    </VStack>
+                  </Box>
+                )}
               </Box>
 
               {/* Right content */}
@@ -272,90 +559,11 @@ export default function ManageRound() {
                 sx={{
                   "@md": {
                     maxHeight: "calc(100vh - 144px)",
-                    pr: "$16",
                     pl: "$8",
                   },
                 }}
                 flex={1}
-              >
-                <Box pt="$6" pb="$2.5" pl="$4" sx={{ "@md": { px: 0 } }}>
-                  <HStack
-                    w="100%"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <Heading size="xl">Edit</Heading>
-                    {/* Hidden for mobile screens */}
-                    <Button
-                      display="none"
-                      sx={{
-                        "@md": {
-                          display: "flex",
-                        },
-                      }}
-                      ml="auto"
-                      variant="outline"
-                      action="secondary"
-                      size="sm"
-                    >
-                      <ButtonText>Save</ButtonText>
-                    </Button>
-                  </HStack>
-
-                  {activeQuestion ? (
-                    <VStack
-                      alignContent="center"
-                      justifyContent="space-between"
-                      px="$2"
-                      pb="$4"
-                    >
-                      <Text
-                        pb="$2"
-                        size="sm"
-                        color="$textLight900"
-                        sx={{ _dark: { color: "$textDark100" } }}
-                      >
-                        {activeQuestion.question}
-                      </Text>
-
-                      <Input w="$full" size="sm">
-                        <InputField
-                          placeholder="The answer"
-                          value={activeQuestion.answer}
-                        />
-                      </Input>
-
-                      <HStack pt="$1">
-                        <Input size="sm">
-                          <InputSlot pl="$3">
-                            <InputIcon as={Hash} />
-                          </InputSlot>
-                          <InputField
-                            placeholder="Points"
-                            value={activeQuestion.points}
-                          />
-                        </Input>
-                      </HStack>
-                    </VStack>
-                  ) : (
-                    <VStack
-                      alignContent="center"
-                      justifyContent="space-between"
-                      px="$2"
-                      pb="$4"
-                    >
-                      <Text
-                        pb="$2"
-                        size="sm"
-                        color="$textLight900"
-                        sx={{ _dark: { color: "$textDark100" } }}
-                      >
-                        Select question to edit.
-                      </Text>
-                    </VStack>
-                  )}
-                </Box>
-              </Box>
+              ></Box>
             </HStack>
           </HStack>
         </Box>
