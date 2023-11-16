@@ -1,8 +1,11 @@
 import { useContext, useState, useEffect } from "react";
-import { StatusBar, Platform, ScrollView } from "react-native";
+import { StatusBar, Platform, ScrollView, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Box,
+  Button,
+  ButtonText,
+  ButtonIcon,
   HStack,
   VStack,
   Heading,
@@ -11,9 +14,16 @@ import {
   Toast,
   ToastTitle,
   Icon,
+  Input,
+  InputField,
+  InputIcon,
+  InputSlot,
 } from "@gluestack-ui/themed";
 import {
+  ArrowUp01,
   ChevronRight,
+  Hash,
+  Plus,
   PlusCircleIcon,
   SettingsIcon,
 } from "lucide-react-native";
@@ -45,6 +55,7 @@ export default function ManageEvent() {
       ${process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME} (
         id,
         question,
+        answer,
         points,
         status,
         ${process.env.EXPO_PUBLIC_RESPONSES_TABLE_NAME} (
@@ -142,6 +153,7 @@ export default function ManageEvent() {
           </Box>
 
           <HStack w="100%" display="none" sx={{ "@md": { display: "flex" } }}>
+            {/* Left-hand navigation */}
             <Box
               flex={1}
               display="none"
@@ -187,6 +199,7 @@ export default function ManageEvent() {
                     >
                       <Heading size="sm">Rounds</Heading>
                     </HStack>
+
                     <VStack w="100%">
                       <HStack space="lg" w="100%">
                         <VStack flex={1}>
@@ -197,35 +210,31 @@ export default function ManageEvent() {
                               justifyContent="space-between"
                               pb="$2"
                             >
-                              <Text
-                                size="sm"
-                                color="$textLight900"
-                                pb="$1"
-                                sx={{ _dark: { color: "$textDark100" } }}
+                              <Pressable
+                                onPress={() => {
+                                  setActiveRound(round);
+                                }}
                               >
-                                {round.name}
-                              </Text>
-
-                              {round[
-                                process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME
-                              ].map((question, qIndex) => (
-                                <VStack
-                                  key={qIndex}
-                                  alignContent="center"
-                                  justifyContent="space-between"
-                                  pl="$2"
-                                  px="$1"
-                                >
+                                <HStack justifyContent="space-between">
                                   <Text
                                     size="sm"
                                     color="$textLight900"
-                                    isTruncated={true}
+                                    pb="$1"
                                     sx={{ _dark: { color: "$textDark100" } }}
                                   >
-                                    {qIndex + 1}. {question.question}
+                                    {round.name} (
+                                    {
+                                      round[
+                                        process.env
+                                          .EXPO_PUBLIC_QUESTIONS_TABLE_NAME
+                                      ].length
+                                    }
+                                    )
                                   </Text>
-                                </VStack>
-                              ))}
+
+                                  <Icon size="sm" as={ChevronRight} />
+                                </HStack>
+                              </Pressable>
                             </VStack>
                           ))}
                         </VStack>
@@ -235,6 +244,121 @@ export default function ManageEvent() {
                 </VStack>
               </ScrollView>
             </Box>
+
+            <HStack style={{ flex: 1 }}>
+              {/* Center content */}
+              <Box
+                sx={{
+                  "@md": {
+                    maxHeight: "calc(100vh - 144px)",
+                    pl: "$8",
+                  },
+                }}
+                flex={1}
+              >
+                <Box pt="$6" pb="$2.5" px="$4" sx={{ "@md": { px: 0 } }}>
+                  <HStack
+                    px="$2"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Heading size="xl">Questions</Heading>
+                    {/* Hidden for mobile screens */}
+                    <Button
+                      display="none"
+                      sx={{
+                        "@md": {
+                          display: "flex",
+                        },
+                      }}
+                      ml="auto"
+                      variant="outline"
+                      action="secondary"
+                      size="sm"
+                    >
+                      <ButtonIcon as={Plus} />
+                    </Button>
+                  </HStack>
+                </Box>
+
+                <VStack
+                  space="md"
+                  width="100%"
+                  px="$4"
+                  sx={{ "@md": { px: "$0" } }}
+                >
+                  {activeRound &&
+                    activeRound[
+                      process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME
+                    ].map((question, qIndex) => (
+                      <VStack
+                        key={qIndex}
+                        alignContent="center"
+                        justifyContent="space-between"
+                        px="$2"
+                        pb="$4"
+                      >
+                        <Text
+                          pb="$2"
+                          size="sm"
+                          color="$textLight900"
+                          isTruncated={true}
+                          sx={{ _dark: { color: "$textDark100" } }}
+                        >
+                          {qIndex + 1}. {question.question}
+                        </Text>
+
+                        <Input w="$full" size="sm">
+                          <InputField
+                            placeholder="The answer"
+                            value={question.answer}
+                          />
+                        </Input>
+
+                        <HStack pt="$1">
+                          <Input size="sm">
+                            <InputSlot pl="$3">
+                              <InputIcon as={Hash} />
+                            </InputSlot>
+                            <InputField
+                              placeholder="Points"
+                              value={question.points}
+                            />
+                          </Input>
+                        </HStack>
+                      </VStack>
+                    ))}
+
+                  {activeRound &&
+                    !activeRound[process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME]
+                      .length && (
+                      <Text px="$2">No questions in the round.</Text>
+                    )}
+                </VStack>
+              </Box>
+
+              {/* Right content */}
+              <Box
+                sx={{
+                  "@md": {
+                    maxHeight: "calc(100vh - 144px)",
+                    pr: "$16",
+                    pl: "$8",
+                  },
+                }}
+                flex={1}
+              >
+                <Box pt="$6" pb="$2.5" pl="$4" sx={{ "@md": { px: 0 } }}>
+                  <HStack
+                    w="100%"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Heading size="xl">Responses</Heading>
+                  </HStack>
+                </Box>
+              </Box>
+            </HStack>
           </HStack>
         </Box>
       </Box>
