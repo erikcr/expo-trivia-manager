@@ -42,7 +42,7 @@ const MainContent = ({
                 return (
                   <Pressable
                     key={index}
-                    onPress={() => router.push(`/event?id=${item.id}`)}
+                    onPress={() => router.push(`/manage/${item.id}`)}
                   >
                     <Box borderWidth={1} borderRadius="$md" p="$12" m="$2">
                       <Heading>{item.name}</Heading>

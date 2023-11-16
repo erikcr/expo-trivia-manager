@@ -1,4 +1,4 @@
-import ManageScreen from '../screens/ManageScreen';
+import ManageScreen from '../../screens/ManageScreen';
 
 export default function Home() {
   return <ManageScreen />;

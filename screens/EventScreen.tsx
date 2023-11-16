@@ -29,8 +29,8 @@ import MainContent from "../components/main-content/MainContent";
 const EventScreen = () => {
   const params = useLocalSearchParams();
   const session = useContext(SessionContext);
-  const [activeEvent, setActiveEvent] = useState(null);
-  const [allRounds, setAllRounds] = useState(null);
+  const [activeEvent, setActiveEvent] = useState({});
+  const [allRounds, setAllRounds] = useState([]);
 
   useEffect(() => {
     if (Platform.OS === "web") {
@@ -43,7 +43,8 @@ const EventScreen = () => {
     if (params) {
       const { data, error } = await supabase
         .from(process.env.EXPO_PUBLIC_EVENTS_TABLE_NAME)
-        .select();
+        .select()
+        .eq("event_id", params.id);
 
       if (data?.length) setActiveEvent(data[0]);
     }
@@ -78,7 +79,7 @@ const EventScreen = () => {
   };
   useEffect(() => {
     getActiveEvent();
-  }, [session]);
+  }, [session, params]);
 
   return (
     <>
@@ -224,7 +225,22 @@ const EventScreen = () => {
                         width="100%"
                         px="$4"
                         sx={{ "@md": { px: "$0" } }}
-                      ></HStack>
+                      >
+                        {allRounds.map((item, index) => {
+                          return (
+                            <Box
+                              borderWidth={1}
+                              borderRadius="$md"
+                              p="$12"
+                              m="$2"
+                            >
+                              <Heading>{item.name}</Heading>
+                              <Text>{item.description}</Text>
+                              <Text>{item.status}</Text>
+                            </Box>
+                          );
+                        })}
+                      </HStack>
                     </ScrollView>
                   </Box>
                 </Box>

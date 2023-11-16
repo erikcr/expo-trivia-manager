@@ -1,5 +1,5 @@
 import EventScreen from '../screens/EventScreen';
 
-export default function Home() {
+export default function Event() {
   return <EventScreen />;
 }

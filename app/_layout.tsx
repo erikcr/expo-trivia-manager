@@ -46,6 +46,9 @@ export default function RootLayout() {
       <SessionContextProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="manage/index" options={{ headerShown: false }} />
+          <Stack.Screen name="manage/[eventId]" options={{ headerShown: false }} />
+          
           <Stack.Screen name="event" options={{ headerShown: false }} />
 
           <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -59,8 +62,6 @@ export default function RootLayout() {
             name="create-password"
             options={{ headerShown: false }}
           />
-
-          <Stack.Screen name="manage" options={{ headerShown: false }} />
         </Stack>
       </SessionContextProvider>
     </GluestackUIProvider>
