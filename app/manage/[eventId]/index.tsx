@@ -7,32 +7,28 @@ import {
   VStack,
   Heading,
   Text,
-  Button,
-  ButtonText,
-  ButtonIcon,
   useToast,
   Toast,
   ToastTitle,
   Icon,
 } from "@gluestack-ui/themed";
 import {
+  ChevronRight,
   PlusCircleIcon,
-  Settings,
-  Settings2,
   SettingsIcon,
 } from "lucide-react-native";
 
-import { supabase } from "../../utils/supabase";
-import { SessionContext } from "../../utils/SessionContext";
+import { supabase } from "../../../utils/supabase";
+import { SessionContext } from "../../../utils/SessionContext";
 
-import UserProfile from "../../components/header/UserProfile";
-import Header from "../../components/Header";
+import UserProfile from "../../../components/header/UserProfile";
 
 export default function ManageEvent() {
   const { eventId } = useLocalSearchParams();
   const session = useContext(SessionContext);
   const [event, setEvent] = useState({});
   const [eventRounds, setEventRounds] = useState([]);
+  const [activeRound, setActiveRound] = useState(null);
 
   const toast = useToast();
 
@@ -62,7 +58,9 @@ export default function ManageEvent() {
         .eq("owner", session.user.id);
 
       if (data) {
+        console.log(data);
         setEventRounds(data);
+        setActiveRound(data[0]);
       } else if (error) {
         throw error;
       }
@@ -106,79 +104,51 @@ export default function ManageEvent() {
     <>
       <Box
         sx={{
-          _light: { bg: "white" },
           _dark: { bg: "$backgroundDark950" },
         }}
       >
-        <StatusBar />
-
         <Box flex={1}>
-          {/* <MobileProfilePage isActive={activeTab === 'Profile'} /> */}
-
-          <Box
-            w="100%"
-            sx={
-              {
-                //   display: activeTab !== "Profile" ? "flex" : "none",
-              }
-            }
-          >
-            {/* header */}
-            <Box>
-              {/* big screen */}
-              <Box
-                px="$16"
-                w="100%"
-                borderBottomWidth={1}
-                display="none"
-                sx={{
-                  "@md": {
-                    display: "flex",
-                  },
-                  _light: { borderColor: "$borderLight100" },
-                  _dark: { borderColor: "$borderDark900" },
-                }}
-              >
-                <HStack
-                  alignItems="center"
-                  justifyContent="space-between"
-                  mx="auto"
-                  w="100%"
-                  my="$2"
-                >
-                  <Text>Brainy Brawls</Text>
-
-                  <Text>{event.name}</Text>
-
-                  <HStack space="lg" alignItems="center" pr="$1.5">
-                    {/* <ToggleMode /> */}
-                    <UserProfile />
-                  </HStack>
-                </HStack>
-              </Box>
-            </Box>
-          </Box>
-
-          <ScrollView>
+          <Box w="100%" borderBottomWidth={1}>
             <Box
+              px="$16"
+              w="100%"
+              borderBottomWidth={1}
+              display="none"
               sx={{
-                // display: activeTab !== "Profile" ? "flex" : "none",
-
-                "@md": { display: "none" },
+                "@md": {
+                  display: "flex",
+                },
+                _light: { borderColor: "$borderLight100" },
+                _dark: { borderColor: "$borderDark900" },
               }}
             >
-              {/* <MainContent
-                setActiveTab={setActiveTab}
-                activeTab={activeTab}
-                events={myEvents}
-              /> */}
+              <HStack
+                alignItems="center"
+                justifyContent="space-between"
+                mx="auto"
+                w="100%"
+                my="$2"
+              >
+                <Text>Brainy Brawls</Text>
+
+                <Text>{event.name}</Text>
+
+                <HStack space="lg" alignItems="center" pr="$1.5">
+                  {/* <ToggleMode /> */}
+                  <UserProfile />
+                </HStack>
+              </HStack>
             </Box>
-          </ScrollView>
+          </Box>
 
           <HStack w="100%" display="none" sx={{ "@md": { display: "flex" } }}>
             <Box
               flex={1}
               display="none"
+              maxWidth={340}
+              w="100%"
+              pl="$12"
+              borderEndWidth={1}
               sx={{
                 "@md": {
                   display: "flex",
@@ -187,11 +157,7 @@ export default function ManageEvent() {
                   },
                 },
               }}
-              maxWidth={340}
-              w="100%"
-              pl="$12"
             >
-              {/* common sidebar contents for web and mobile */}
               <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{ flex: 1 }}
@@ -220,26 +186,47 @@ export default function ManageEvent() {
                       justifyContent="space-between"
                     >
                       <Heading size="sm">Rounds</Heading>
-                      <Icon as={PlusCircleIcon} />
                     </HStack>
                     <VStack w="100%">
                       <HStack space="lg" w="100%">
                         <VStack flex={1}>
-                          {eventRounds.map((item, index) => (
-                            <HStack
-                              key={index}
+                          {eventRounds.map((round, rIndex) => (
+                            <VStack
+                              key={rIndex}
                               alignContent="center"
                               justifyContent="space-between"
+                              pb="$2"
                             >
                               <Text
                                 size="sm"
                                 color="$textLight900"
+                                pb="$1"
                                 sx={{ _dark: { color: "$textDark100" } }}
                               >
-                                {item.name}
+                                {round.name}
                               </Text>
-                              <Icon as={SettingsIcon} />
-                            </HStack>
+
+                              {round[
+                                process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME
+                              ].map((question, qIndex) => (
+                                <VStack
+                                  key={qIndex}
+                                  alignContent="center"
+                                  justifyContent="space-between"
+                                  pl="$2"
+                                  px="$1"
+                                >
+                                  <Text
+                                    size="sm"
+                                    color="$textLight900"
+                                    isTruncated={true}
+                                    sx={{ _dark: { color: "$textDark100" } }}
+                                  >
+                                    {qIndex + 1}. {question.question}
+                                  </Text>
+                                </VStack>
+                              ))}
+                            </VStack>
                           ))}
                         </VStack>
                       </HStack>
@@ -248,31 +235,7 @@ export default function ManageEvent() {
                 </VStack>
               </ScrollView>
             </Box>
-
-            <ScrollView style={{ flex: 1 }}></ScrollView>
           </HStack>
-
-          {/* <MobileModeChangeButton /> */}
-        </Box>
-
-        <Box
-          h={72}
-          alignItems="center"
-          w="100%"
-          sx={{
-            "@md": {
-              display: "none",
-            },
-            _dark: { borderColor: "$borderDark900" },
-          }}
-          borderTopWidth="$1"
-          borderColor="$borderLight50"
-        >
-          {/* <MobileBottomTabs
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            bottomTabs={bottomTabs}
-          /> */}
         </Box>
       </Box>
     </>

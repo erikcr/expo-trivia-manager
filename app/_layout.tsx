@@ -44,25 +44,7 @@ export default function RootLayout() {
   return (
     <GluestackUIProvider config={config}>
       <SessionContextProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="manage/index" options={{ headerShown: false }} />
-          <Stack.Screen name="manage/[eventId]" options={{ headerShown: false }} />
-          
-          <Stack.Screen name="event" options={{ headerShown: false }} />
-
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="forgot-password"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="create-password"
-            options={{ headerShown: false }}
-          />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </SessionContextProvider>
     </GluestackUIProvider>
   );
