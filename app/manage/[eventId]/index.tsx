@@ -30,50 +30,44 @@ import {
 
 import { supabase } from "../../../utils/supabase";
 import { SessionContext } from "../../../utils/SessionContext";
+import { DbResult, Tables } from "../../../types/database.types";
 
 import UserProfile from "../../../components/header/UserProfile";
 
 export default function ManageEvent() {
   const { eventId } = useLocalSearchParams();
   const session = useContext(SessionContext);
-  const [event, setEvent] = useState({});
-  const [eventRounds, setEventRounds] = useState([]);
-  const [activeRound, setActiveRound] = useState(null);
+  const [event, setEvent] = useState<Tables<"v001_events_stag"> | undefined>(
+    undefined
+  );
+  const [eventRounds, setEventRounds] = useState<Tables<"v001_rounds_stag">[]>(
+    []
+  );
+  const [activeRound, setActiveRound] = useState<
+    Tables<"v001_rounds_stag"> | undefined
+  >(undefined);
 
   const toast = useToast();
 
   const getEventRounds = async () => {
     if (session) {
-      const { data, error } = await supabase
+      const query = supabase
         .from(process.env.EXPO_PUBLIC_ROUNDS_TABLE_NAME)
-        .select(
-          `
-      id,
-      name,
-      description,
-      status,
-      ${process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME} (
-        id,
-        question,
-        answer,
-        points,
-        status,
-        ${process.env.EXPO_PUBLIC_RESPONSES_TABLE_NAME} (
-          id
-        )
-      )
-      `
+        .select(`id, name, description, status,
+          v001_questions_stag (id, question, answer, points, status,
+            v001_responses_stag (id)
+          )`
         )
         .order("order_num")
         .eq("event_id", eventId)
         .eq("owner", session.user.id);
 
-      if (data) {
-        console.log(data);
-        setEventRounds(data);
-        setActiveRound(data[0]);
-      } else if (error) {
-        throw error;
+      const events: DbResult<typeof query> = await query;
+
+      if (events) {
+        console.log(events);
+        setEventRounds(events);
+        setActiveRound(events[0]);
       }
     }
   };
