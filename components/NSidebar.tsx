@@ -1,48 +1,27 @@
+import { useEffect, useState } from "react";
 import { ScrollView, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Heading, Text, VStack } from "@gluestack-ui/themed";
 
-const sidebarItems = [
-  {
-    type: "header",
-    label: "Events",
-  },
-  {
-    type: "route",
-    label: "Event 1",
-    destination: "new-design/?e=1",
-  },
-  {
-    type: "route",
-    label: "Event 2",
-    destination: "new-design/?e=2",
-  },
-  {
-    type: "route",
-    label: "Event 3",
-    destination: "new-design/?e=3",
-  },
-  {
-    type: "header",
-    label: "Account",
-  },
-  {
-    type: "route",
-    label: "Settings",
-    destination: "new-design/?e=settings",
-  },
-  {
-    type: "route",
-    label: "Profile",
-    destination: "new-design/?e=profile",
-  },
-];
+import { SidebarList } from "../types/app.types";
 
-export default function NSidebar() {
+export default function NSidebar({
+  dynamicSidebarItems,
+}: {
+  dynamicSidebarItems: SidebarList;
+}) {
+  const [sidebarItems, setSidebarItems] = useState<SidebarList>();
+
+  useEffect(() => {
+    if (dynamicSidebarItems) {
+      setSidebarItems(dynamicSidebarItems);
+    }
+  }, [dynamicSidebarItems]);
+
   return (
     <ScrollView>
       <VStack px="$4" py="$6">
-        {sidebarItems.map((item, index) => {
+        {sidebarItems?.map((item, index) => {
           switch (item.type) {
             case "header":
               return (
@@ -60,13 +39,25 @@ export default function NSidebar() {
               return (
                 <Pressable
                   key={index}
-                  onPress={() => router.push(item.destination)}
+                  onPress={() => router.push(item.destination || "/dashboard")}
                 >
                   <Text size="sm" color="$textLight900">
                     {item.label}
                   </Text>
                 </Pressable>
               );
+
+            case "rounds":
+              return item.rounds?.map((round, rIndex) => (
+                <Pressable
+                  key={rIndex}
+                  onPress={() => router.push(`round/${round.id}`)}
+                >
+                  <Text size="sm" color="$textLight900">
+                    {round.name}
+                  </Text>
+                </Pressable>
+              ));
           }
         })}
       </VStack>

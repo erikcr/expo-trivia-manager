@@ -13,53 +13,61 @@ import {
   Heading,
   HStack,
   Text,
+  Toast,
+  ToastTitle,
+  useToast,
   VStack,
 } from "@gluestack-ui/themed";
+import { Hash } from "lucide-react-native";
 
 import { supabase } from "../../../../utils/supabase";
 import { SessionContext } from "../../../../utils/SessionContext";
 import { DbResult, Tables } from "../../../../types/database.types";
+import { SidebarList } from "../../../../types/app.types";
 
 import NHeader from "../../../../components/NHeader";
 import NSidebar from "../../../../components/NSidebar";
 import NContentHeader from "../../../../components/NContentHeader";
 
 const pageTitle = "Event > Questions";
-const events = [
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-];
 
 export default function AllEventsPage() {
   const { eventId } = useLocalSearchParams();
   const session = useContext(SessionContext);
 
+  const DEFAULT_SIDEBAR: SidebarList = [
+    {
+      type: "header",
+      label: "Dashboard",
+    },
+    {
+      type: "route",
+      label: "All events",
+      destination: "/dashboard/events",
+    },
+    {
+      type: "header",
+      label: "Event",
+    },
+    {
+      type: "route",
+      label: "Home",
+      destination: `/dashboard/event/${eventId}`,
+    },
+  ];
+  const [sidebarItems, setSidebarItems] = useState(DEFAULT_SIDEBAR);
+
+  const [event, setEvent] = useState<Tables<"v001_events_stag"> | undefined>(
+    undefined
+  );
   const [eventRounds, setEventRounds] = useState<
-    Tables<"v001_rounds_stag">[] | null
+    Tables<"v001_rounds_stag">[] | undefined
   >([]);
+  const [roundQuestions, setRoundQuestions] = useState<
+    Tables<"v001_questions_stag">[] | undefined
+  >([]);
+
+  const toast = useToast();
 
   const getEventRounds = async () => {
     if (session) {
@@ -68,123 +76,97 @@ export default function AllEventsPage() {
         .select()
         .order("order_num")
         .eq("event_id", Number(eventId))
-        .eq("owner", session.user.id);
+        .eq("owner", session?.user.id);
 
-      if (events) {
-        console.log(events);
-        setEventRounds(data);
+      if (data) {
+        let newSidebar = DEFAULT_SIDEBAR.concat(
+          {
+            type: "header",
+            label: "Rounds",
+          },
+          {
+            type: "rounds",
+            rounds: data,
+          }
+        );
+        setSidebarItems(newSidebar);
+      }
+    }
+  };
+
+  const getEvent = async () => {
+    if (session) {
+      const { data, error } = await supabase
+        .from("v001_events_stag")
+        .select()
+        .eq("id", Number(eventId))
+        .eq("owner", session?.user.id);
+
+      if (!data?.length) {
+        toast.show({
+          placement: "bottom right",
+          render: ({ id }: any) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Event does not exist.</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+
+        router.replace("/dashboard/events");
+      } else {
+        setEvent(data[0]);
+        getEventRounds();
       }
     }
   };
 
   useEffect(() => {
     if (session) {
-      getEventRounds();
+      getEvent();
     }
   }, [session]);
 
   const PageContent = () => {
     return (
-      <VStack>
-        <HStack>
-          <Button size="sm">
-            <ButtonText>New question</ButtonText>
-          </Button>
-        </HStack>
-
-        <HStack
-          display="flex"
-          flexWrap="wrap"
-          pt="$4"
-          sx={{ "@md": { px: "$0" } }}
-        >
-          <Box
-            sx={{
-              "@md": {
-                maxHeight: "calc(100vh - 144px)",
-                pl: "$8",
-              },
-            }}
-            flex={1}
+      <VStack space="md" width="100%" px="$4" sx={{ "@md": { px: "$0" } }}>
+        {roundQuestions?.map((item, index) => (
+          <VStack
+            key={index}
+            alignContent="center"
+            justifyContent="space-between"
+            px="$2"
+            pb="$4"
           >
-            <Box pt="$6" pb="$2.5" px="$4" sx={{ "@md": { px: 0 } }}>
-              <HStack
-                px="$2"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Heading size="xl">Questions</Heading>
-                {/* Hidden for mobile screens */}
-                <Button
-                  display="none"
-                  sx={{
-                    "@md": {
-                      display: "flex",
-                    },
-                  }}
-                  ml="auto"
-                  variant="outline"
-                  action="secondary"
-                  size="sm"
-                >
-                </Button>
-              </HStack>
-            </Box>
-
-            <VStack
-              space="md"
-              width="100%"
-              px="$4"
-              sx={{ "@md": { px: "$0" } }}
+            <Text
+              pb="$2"
+              size="sm"
+              color="$textLight900"
+              isTruncated={true}
+              sx={{ _dark: { color: "$textDark100" } }}
             >
-              {activeRound &&
-                activeRound[process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME].map(
-                  (question, qIndex) => (
-                    <VStack
-                      key={qIndex}
-                      alignContent="center"
-                      justifyContent="space-between"
-                      px="$2"
-                      pb="$4"
-                    >
-                      <Text
-                        pb="$2"
-                        size="sm"
-                        color="$textLight900"
-                        isTruncated={true}
-                        sx={{ _dark: { color: "$textDark100" } }}
-                      >
-                        {qIndex + 1}. {question.question}
-                      </Text>
+              {item.question}
+            </Text>
 
-                      <Input w="$full" size="sm">
-                        <InputField
-                          placeholder="The answer"
-                          value={question.answer}
-                        />
-                      </Input>
+            <Input w="$full" size="sm">
+              <InputField placeholder="The answer" value={item.answer} />
+            </Input>
 
-                      <HStack pt="$1">
-                        <Input size="sm">
-                          <InputSlot pl="$3">
-                            <InputIcon as={Hash} />
-                          </InputSlot>
-                          <InputField
-                            placeholder="Points"
-                            value={question.points}
-                          />
-                        </Input>
-                      </HStack>
-                    </VStack>
-                  )
-                )}
+            <HStack pt="$1">
+              <Input size="sm">
+                <InputSlot pl="$3">
+                  <InputIcon as={Hash} />
+                </InputSlot>
+                <InputField placeholder="Points" value={item.points} />
+              </Input>
+            </HStack>
+          </VStack>
+        ))}
 
-              {activeRound &&
-                !activeRound[process.env.EXPO_PUBLIC_QUESTIONS_TABLE_NAME]
-                  .length && <Text px="$2">No questions in the round.</Text>}
-            </VStack>
-          </Box>
-        </HStack>
+        {roundQuestions && roundQuestions?.length && (
+          <Text px="$2">No questions in the round.</Text>
+        )}
       </VStack>
     );
   };
@@ -221,7 +203,7 @@ export default function AllEventsPage() {
           {/**
            * Left-side sidebar
            */}
-          <NSidebar />
+          <NSidebar dynamicSidebarItems={sidebarItems} />
         </VStack>
 
         {/**
@@ -238,7 +220,7 @@ export default function AllEventsPage() {
                 _dark: { borderColor: "$borderDark900" },
               }}
             >
-              {pageTitle}
+              {event?.name || "Loading..."}
             </Text>
           </NContentHeader>
 

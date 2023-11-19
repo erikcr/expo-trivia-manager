@@ -15,42 +15,28 @@ import {
 import { supabase } from "../../../utils/supabase";
 import { SessionContext } from "../../../utils/SessionContext";
 import { DbResult, Tables } from "../../../types/database.types";
+import { SidebarList } from "../../../types/app.types";
 
 import NHeader from "../../../components/NHeader";
 import NSidebar from "../../../components/NSidebar";
 import NContentHeader from "../../../components/NContentHeader";
 
 const pageTitle = "All Events";
-const events = [
+const DEFAULT_SIDEBAR: SidebarList = [
   {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
+    type: "header",
+    label: "Dashboard",
   },
   {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
-  },
-  {
-    name: "Event 1",
-    description: "Short form desc",
-    venue: "Best Bar",
+    type: "route",
+    label: "All events",
+    destination: "/dashboard/events",
   },
 ];
 
 export default function AllEventsPage() {
   const session = useContext(SessionContext);
+  const [sidebarItems, setSidebarItems] = useState(DEFAULT_SIDEBAR);
 
   const [allEvents, setAllEvents] = useState<
     Tables<"v001_events_stag">[] | null
@@ -62,7 +48,9 @@ export default function AllEventsPage() {
       .select()
       .eq("owner", session?.user.id);
 
-    setAllEvents(data);
+    if (data) {
+      setAllEvents(data);
+    }
   };
 
   useEffect(() => {
@@ -151,7 +139,7 @@ export default function AllEventsPage() {
           {/**
            * Left-side sidebar
            */}
-          <NSidebar />
+          <NSidebar dynamicSidebarItems={sidebarItems} />
         </VStack>
 
         {/**
