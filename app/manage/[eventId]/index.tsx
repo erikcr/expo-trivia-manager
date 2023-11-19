@@ -136,7 +136,7 @@ export default function ManageEvent() {
               >
                 <Text>Brainy Brawls</Text>
 
-                <Text>{event.name}</Text>
+                {/* <Text>{event.name}</Text> */}
 
                 <HStack space="lg" alignItems="center" pr="$1.5">
                   {/* <ToggleMode /> */}
